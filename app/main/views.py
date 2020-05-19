@@ -4,6 +4,7 @@
 from datetime import datetime
 from flask import render_template, session, url_for, current_app, abort, flash, request, make_response, request, jsonify
 import json
+import mongoengine
 from hashlib import md5
 from . import main
 from .. import db
@@ -15,14 +16,15 @@ def login():
     login_data = request.get_data()
     login_data = json.loads(login_data)
     print(login_data)
-    person = Sales.objects.find({"phone": login_data["phone"]}).first()
+    person = Sales.objects(phone=login_data["phone"]).first()
+    print(person.password, "????")
     if not person:
         result_data = {
             "code": 500,
             "msg": "帐号密码不匹配",
             "data": {}
         }
-    elif md5(login_data["password"].encode()).hexdigest() != person["password"]:
+    elif md5(login_data["password"].encode()).hexdigest() != person.password:
         result_data = {
             "code": 500,
             "msg": "帐号密码不匹配",
@@ -42,7 +44,21 @@ def login():
 def register():
     register_data = request.get_data()
     register_data = json.loads(register_data)
-    saler = Sales(id="1", name=register_data["name"], phone=register_data["phone"], email="", password=register_data["password"], creater=register_data["creater"])
-    saler.save()
-    return {"code":"ok"}
+    pwd = md5(register_data["password"].encode()).hexdigest()
+    saler = Sales(name=register_data["name"], phone=register_data["phone"], email="", password=pwd, creater=register_data["creater"])
+    try:
+        saler.save()
+        data = {
+            "code": 200,
+            "msg": "注册成功",
+            "data": {}
+        }
+    except mongoengine.errors.NotUniqueError as e:
+        print(e)
+        data = {
+            "code": 401,
+            "msg": "手机号重复",
+            "data": {}
+        }
 
+    return data
