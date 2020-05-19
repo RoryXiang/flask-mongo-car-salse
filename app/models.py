@@ -5,7 +5,7 @@ from . import mongo
 
 
 class BasePerson(mongo.Document):
-    _id = mongo.StringField(required=True, max_length=50, unique=True, primary_key=True)
+    id = mongo.StringField(required=True, max_length=50, unique=True, primary_key=True)
     name = mongo.StringField()
     phone = mongo.StringField(required=True, max_length=11, unique=True)
     email = mongo.StringField()
@@ -19,10 +19,10 @@ class BasePerson(mongo.Document):
 
     meta = {
         "allow_inheritance": True,
-        "index": [{
-            'fields': ['_id'],
-            'unique': True,
-            }]
+        # "index": [{
+        #     'fields': ['id'],
+        #     'unique': True,
+        #     }]
     } 
 
 

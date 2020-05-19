@@ -42,7 +42,7 @@ def login():
 def register():
     register_data = request.get_data()
     register_data = json.loads(register_data)
-    saler = Sales(_id="1", name=register_data["name"], phone=register_data["phone"], email="", password=register_data["password"], creater=register_data["creater"])
+    saler = Sales(id="1", name=register_data["name"], phone=register_data["phone"], email="", password=register_data["password"], creater=register_data["creater"])
     saler.save()
     return {"code":"ok"}
 
