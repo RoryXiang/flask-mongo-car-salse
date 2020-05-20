@@ -11,8 +11,8 @@ class BasePerson(mongo.Document):
     email = mongo.StringField()
     password = mongo.StringField(required=True)
     creater = mongo.StringField(required=True)
-    create_tiem = mongo.Document()
-    ismaster = mongo.StringField()
+    create_tiem = mongo.DateTimeField()
+    ismaster = mongo.IntField()
     education = mongo.StringField()
     master_belong = mongo.StringField()
     self_introduction = mongo.StringField()
@@ -54,16 +54,17 @@ class Byeer(BasePerson):
 
 
 class Cars(mongo.Document):
-    name = mongo.StringField(required=True)
-    min_price = mongo.StringField(required=True)
-    max_price = mongo.StringField(required=True)
-    introdution = mongo.StringField()
-    saled_bumber = mongo.StringField()
+    name = mongo.StringField(required=True, unique=True)
+    min_price = mongo.FloatField(required=True)
+    max_price = mongo.FloatField(required=True)
+    introduction = mongo.StringField()
+    brand = mongo.StringField(required=True)
+    saled_number = mongo.IntField()
 
     meta = {
         "collection": "cars",
         "index": [{
-            'fields': ['name'],
+            'fields': ['name', 'min_price', 'max_price', 'saled_number', 'brand'],
             'unique': True,
         }]
     }
@@ -71,10 +72,10 @@ class Cars(mongo.Document):
 
 class Bills(mongo.Document):
     car_id = mongo.StringField(required=True)
-    id = mongo.StringField(required=True, unique=True)
+    id = mongo.IntField(required=True, unique=True)
     person_saled = mongo.StringField(required=True)
-    price_saled = mongo.StringField(required=True)
-    date_saled = mongo.StringField(required=True)
+    price_saled = mongo.FloatField(required=True)
+    date_saled = mongo.DateTimeField(required=True)
     byeer = mongo.StringField(required=True)
 
     meta = {
