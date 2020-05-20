@@ -5,16 +5,14 @@ from . import mongo
 
 
 class BasePerson(mongo.Document):
-    # id_ = mongo.StringField(required=True, max_length=50, unique=True, primary_key=True)
+    id = mongo.SequenceField(primary_key=True)
     name = mongo.StringField()
     phone = mongo.StringField(required=True, max_length=11, unique=True)
     email = mongo.StringField()
     password = mongo.StringField(required=True)
-    creater = mongo.StringField(required=True)
     create_tiem = mongo.DateTimeField()
-    ismaster = mongo.IntField()
+    ismaster = mongo.BooleanField()
     education = mongo.StringField()
-    master_belong = mongo.StringField()
     self_introduction = mongo.StringField()
 
     meta = {
@@ -23,21 +21,22 @@ class BasePerson(mongo.Document):
 
 
 class Manager(BasePerson):
-    # BasePerson.meta["collection"] = "manager"
     meta = {
         "collection": "manager",
         "index": [{
-            'fields': ['phone'],
+            'fields': ['_id', 'phone'],
             'unique': True,
         }]
     }
 
 
 class Sales(BasePerson):
+    master_belong = mongo.IntField(required=True)
+    creater = mongo.ReferenceField(Manager)
     meta = {
         "collection": "sales",
         "index": [{
-            'fields': ['phone', "master_belong"],
+            'fields': ['_id', 'phone', "master_belong"],
             'unique': True,
         }]
     }
@@ -47,13 +46,14 @@ class Byeer(BasePerson):
     meta = {
         "collection": "byeer",
         "index": [{
-            'fields': ['phone'],
+            'fields': ["_id", 'phone'],
             'unique': True,
         }]
     }
 
 
 class Cars(mongo.Document):
+    id = mongo.SequenceField(primary_key=True)  # 让_id自增
     name = mongo.StringField(required=True, unique=True)
     min_price = mongo.FloatField(required=True)
     max_price = mongo.FloatField(required=True)
@@ -64,24 +64,24 @@ class Cars(mongo.Document):
     meta = {
         "collection": "cars",
         "index": [{
-            'fields': ['name', 'min_price', 'max_price', 'saled_number', 'brand'],
+            'fields': ['_id','name', 'min_price', 'max_price', 'saled_number', 'brand'],
             'unique': True,
         }]
     }
 
 
 class Bills(mongo.Document):
-    car_id = mongo.StringField(required=True)
-    id = mongo.IntField(required=True, unique=True)
-    person_saled = mongo.StringField(required=True)
+    id = mongo.SequenceField(primary_key=True)
+    car_id = mongo.ReferenceField(Cars)
+    saler_id = mongo.ReferenceField(Sales)
     price_saled = mongo.FloatField(required=True)
     date_saled = mongo.DateTimeField(required=True)
-    byeer = mongo.StringField(required=True)
+    byeer = mongo.ReferenceField(Byeer)
 
     meta = {
         "collection": "bills",
         "index": [{
-            'fields': ['car_id', 'person_saled', "byeer"],
+            'fields': ['_id', 'car_id', 'saler_id', "byeer"],
             'unique': True,
         }]
     }
