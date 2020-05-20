@@ -2,6 +2,7 @@
 # coding=utf-8
 
 from . import mongo
+import datetime
 
 
 class BasePerson(mongo.Document):
@@ -10,7 +11,7 @@ class BasePerson(mongo.Document):
     phone = mongo.StringField(required=True, max_length=11, unique=True)
     email = mongo.StringField()
     password = mongo.StringField(required=True)
-    create_tiem = mongo.DateTimeField()
+    create_tiem = mongo.DateTimeField(default=datetime.datetime.now, required=True)
     ismaster = mongo.BooleanField()
     education = mongo.StringField()
     self_introduction = mongo.StringField()
@@ -75,7 +76,7 @@ class Bills(mongo.Document):
     car_id = mongo.ReferenceField(Cars)
     saler_id = mongo.ReferenceField(Sales)
     price_saled = mongo.FloatField(required=True)
-    date_saled = mongo.DateTimeField(required=True)
+    date_saled = mongo.DateTimeField(default=datetime.datetime.now, required=True)
     byeer = mongo.ReferenceField(Byeer)
 
     meta = {

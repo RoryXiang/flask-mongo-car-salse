@@ -110,8 +110,11 @@ def register():
     register_data = request.get_data()
     register_data = json.loads(register_data)
     pwd = md5(register_data["password"].encode()).hexdigest()
-    saler = Sales(name=register_data["name"], phone=register_data["phone"],
-                  email="", password=pwd, creater=register_data["creater"])
+    saler = Sales(name=register_data["name"], 
+                  phone=register_data["phone"],
+                  email="", 
+                  password=pwd, 
+                  creater=register_data["creater"])
     try:
         saler.save()
         data = {
@@ -164,3 +167,23 @@ def get_cars():
             Q(name__contains=parm_data.get("name", "")) & Q(brand=parm_data.get("brand", "")) & Q(min_price__gte=parm_data.get("min_price", 0)) & Q(max_price__lte=parm_data.get("max_price", 999999999999))
         ).limit(20).order_by("-saled_number")
     return jsonify(cars)
+    # TODO 需要解决分页问题
+
+
+@main.route("/creat_bill", methods=["POST"])
+@login_required
+def create_bill():
+    parm_data = request.get_data()
+    parm_data = jsonify(parm_data)
+    bill = Bills(
+
+    )
+    
+
+
+@main.route("/bills", methods=["POST"])
+@login_required
+def get_bills():
+    parm_data = request.get_data()
+    parm_data = jsonify(parm_data)
+
