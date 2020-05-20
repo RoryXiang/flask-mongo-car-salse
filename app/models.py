@@ -18,42 +18,69 @@ class BasePerson(mongo.Document):
     self_introduction = mongo.StringField()
 
     meta = {
-        "allow_inheritance": True,
-        "index": [{
-            'fields': ['phone'],
-            'unique': True,
-            }]
-    } 
+        "allow_inheritance": True
+    }
 
 
 class Manager(BasePerson):
-    meta = {"collection":"manager"}
+    # BasePerson.meta["collection"] = "manager"
+    meta = {
+        "collection": "manager",
+        "index": [{
+            'fields': ['phone'],
+            'unique': True,
+        }]
+    }
 
 
 class Sales(BasePerson):
-    meta = {"collection": "sales"}
+    meta = {
+        "collection": "sales",
+        "index": [{
+            'fields': ['phone', "master_belong"],
+            'unique': True,
+        }]
+    }
 
 
 class Byeer(BasePerson):
-    meta = {"collection": "byeer"}
+    meta = {
+        "collection": "byeer",
+        "index": [{
+            'fields': ['phone'],
+            'unique': True,
+        }]
+    }
 
 
 class Cars(mongo.Document):
-    name = mongo.StringField()
-    min_price = mongo.StringField()
-    max_price = mongo.StringField()
+    name = mongo.StringField(required=True)
+    min_price = mongo.StringField(required=True)
+    max_price = mongo.StringField(required=True)
     introdution = mongo.StringField()
     saled_bumber = mongo.StringField()
-    
-    meta = {"collection": "cars"}
+
+    meta = {
+        "collection": "cars",
+        "index": [{
+            'fields': ['name'],
+            'unique': True,
+        }]
+    }
 
 
 class Bills(mongo.Document):
-    car_id = mongo.StringField()
-    person_saled = mongo.StringField()
-    price_saled = mongo.StringField()
-    date_saled = mongo.StringField()
-    byeer = mongo.StringField()
-    
-    meta = {"collection": "cars"}
+    car_id = mongo.StringField(required=True)
+    id = mongo.StringField(required=True, unique=True)
+    person_saled = mongo.StringField(required=True)
+    price_saled = mongo.StringField(required=True)
+    date_saled = mongo.StringField(required=True)
+    byeer = mongo.StringField(required=True)
 
+    meta = {
+        "collection": "bills",
+        "index": [{
+            'fields': ['car_id', 'person_saled', "byeer"],
+            'unique': True,
+        }]
+    }
