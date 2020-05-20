@@ -12,6 +12,7 @@ from .. import config
 from ..models import Manager, Sales, Byeer, Cars, Bills
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 import functools
+from mongoengine.queryset.visitor import Q
 
 
 token_key = "test"
@@ -28,7 +29,7 @@ def login_required(view_func):
             # 这里的code推荐写一个文件统一管理。这里为了看着直观就先写死了。
             return jsonify(code=4103, msg='缺少参数token')
 
-        s = Serializer(current_app.config["SECRET_KEY"])
+        s = Serializer(token_key)
         try:
             s.loads(token)
         except Exception:
@@ -127,3 +128,39 @@ def register():
         }
 
     return data
+
+
+@main.route("/insert_cars", methods=["POST"])
+@login_required
+def insert_cars():
+    car_info = request.get_data()
+    car_info = json.loads(car_info)
+    car = Cars(
+        name=car_info["name"],
+        min_price=float(car_info["min_price"]),
+        max_price=float(car_info["max_price"]),
+        introduction=car_info["introduction"],
+        brand=car_info["brand"],
+        saled_number=0
+    )
+    car.save()
+    data = {
+        "code": 200,
+        "msg": "入库成功",
+        "data": {}
+    }
+    return data
+
+
+@main.route("/cars", methods=["POST"])
+@login_required
+def get_cars():
+    parm_data = request.get_data()
+    parm_data = json.loads(parm_data)
+    if not parm_data:
+        cars = Cars.objects().limit(20).order_by("-saled_number")
+    else:
+        cars = Cars.objects(
+            Q(name__contains=parm_data.get("name", "")) & Q(brand=parm_data.get("brand", "")) & Q(min_price__gte=parm_data.get("min_price", 0)) & Q(max_price__lte=parm_data.get("max_price", 999999999999))
+        ).limit(20).order_by("-saled_number")
+    return jsonify(cars)
