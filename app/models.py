@@ -31,7 +31,7 @@ class Manager(BasePerson):
 
 
 class Sales(BasePerson):
-    master_belong = mongo.IntField(required=True)
+    master_belong = mongo.IntField()
     creater = mongo.ReferenceField(Manager)
     meta = {
         "collection": "sales",
