@@ -10,7 +10,7 @@ from hashlib import md5
 from . import admin
 from .. import db
 from .. import config
-from ..models import Manager, Sales, Cars
+from ..models import Manager, Sales, Cars, Bills, Byeer
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 import functools
 from mongoengine.queryset.visitor import Q
@@ -24,9 +24,7 @@ token_key = "test"
 def login():
     login_data = request.get_data()
     login_data = json.loads(login_data)
-    print(login_data)
     person = Manager.objects(phone=login_data["phone"]).first()
-    print(person.password, "????")
     if not person:
         result_data = {
             "code": 401,
@@ -40,7 +38,7 @@ def login():
             "data": {}
         }
     else:
-        session["user"] = person.phone
+        session["manager_id"] = person._id
         token = create_token(person.phone)
         result_data = {
             "code": 200,
@@ -56,13 +54,18 @@ def login():
 def saler_register():
     register_data = request.get_data()
     register_data = json.loads(register_data)
+    manager_id = session.get("manager_id", None)
     pwd = md5(register_data["password"].encode()).hexdigest()
     saler = Sales(name=register_data["name"], 
                   phone=register_data["phone"],
                   ismaster=register_data.get("ismaster", 0),
-                  email="", 
-                  password=pwd, 
-                  creater=register_data["creater"])
+                  email=register_data.get("email", ""), 
+                  password=pwd,
+                  education=register_data.get("education", ""),
+                  self_introduction=register_data.get("self_introduction", ""),
+                  master_blong=register_data.get("master_id", 0),
+                  creater=manager_id
+    )
     try:
         saler.save()
         data = {
@@ -85,13 +88,17 @@ def saler_register():
 def manager_register():
     register_data = request.get_data()
     register_data = json.loads(register_data)
+    manager_id = session.get("manager_id", None)
     pwd = md5(register_data["password"].encode()).hexdigest()
     manager = Manager(name=register_data["name"], 
                   phone=register_data["phone"],
-                  email="", 
+                  email=register_data.get("email", ""), 
                   ismaster=register_data.get("ismaster", 0),
                   password=pwd, 
-                  creater=register_data["creater"])
+                  creater=manager_id,
+                  education=register_data.get("education", ""),
+                  self_introduction=register_data.get("self_introduction", "")
+    )
     try:
         manager.save()
         data = {
@@ -122,12 +129,14 @@ def get_saler_masters():
 def insert_cars():
     car_info = request.get_data()
     car_info = json.loads(car_info)
+    manager_id = session.get("manager_id", None)
     car = Cars(
         name=car_info["name"],
         min_price=float(car_info["min_price"]),
         max_price=float(car_info["max_price"]),
         introduction=car_info["introduction"],
         brand=car_info["brand"],
+        insert_manager=manager_id,
         saled_number=0
     )
     car.save()
@@ -137,3 +146,55 @@ def insert_cars():
         "data": {}
     }
     return data
+
+
+@admin.route("/creat_bill", methods=["POST"])
+@login_required
+def create_bill():
+    parm_data = request.get_data()
+    parm_data = jsonify(parm_data)
+    manager_id = session.get("manager_id", None)
+    bill = Bills(
+        car_id=parm_data["car_id"],
+        saler_id=parm_data["saler_id"],
+        price_saled=parm_data["price_saled"],
+        byeer_id=parm_data["byeer_id"],
+        creater=manager_id,
+    )
+    bill.save()
+    result_data = {
+        "code": 200,
+        "msg": "账单创建成功",
+        "data": {}
+    }
+    return result_data
+
+
+@admin.route("/bill", methods=["POST"])
+@login_required
+def get_bill():
+    parm_data = request.get_data()
+    parm_data = jsonify(parm_data)
+    bill = Bills.objects(
+        Q(car_id=parm_data.get("car_id", None)) | Q(saler_id=parm_data.get("saler_id", None)) | Q(byeer_id=parm_data.get("byeer_id", None)) | Q(creater=parm_data.get("manager_id", None))
+    )
+    if not bill:
+        result_data = {
+            "code": 404,
+            "msg": "没有查到相应的账单",
+            "data": {}
+        }
+        return result_data
+    bill_info = jsonify(bill)
+    car = Cars.objects(_id=bill.car_id).first()
+    bill_info["car_name"] = car.name
+    saler = Sales.objects(_id=bill.saler_id).first()
+    bill_info["saler_name"] = saler.name
+    byeer = Byeer.objects(_id=bill.byeer_id).first()
+    bill_info["byeer_name"] = byeer.name
+    result_data = {
+        "code": 200,
+        "msg": "成功",
+        "data": bill_info
+    }
+    return result_data

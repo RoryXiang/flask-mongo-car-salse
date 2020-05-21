@@ -24,7 +24,7 @@ class BasePerson(mongo.Document):
 
 class Manager(mongo.Document):
     id = mongo.SequenceField(primary_key=True)
-    name = mongo.StringField()
+    name = mongo.StringField(required=True)
     phone = mongo.StringField(required=True, max_length=11, unique=True)
     email = mongo.StringField()
     password = mongo.StringField(required=True)
@@ -33,6 +33,7 @@ class Manager(mongo.Document):
     education = mongo.StringField()
     self_introduction = mongo.StringField()
     creater = mongo.StringField(required=True)
+    is_deleted = mongo.BooleanField(default=0)
     meta = {
         "collection": "manager",
         "index": [{
@@ -44,7 +45,7 @@ class Manager(mongo.Document):
 
 class Sales(mongo.Document):
     id = mongo.SequenceField(primary_key=True)
-    name = mongo.StringField()
+    name = mongo.StringField(required=True)
     phone = mongo.StringField(required=True, max_length=11, unique=True)
     email = mongo.StringField()
     password = mongo.StringField(required=True)
@@ -107,7 +108,8 @@ class Bills(mongo.Document):
     saler_id = mongo.ReferenceField(Sales)
     price_saled = mongo.FloatField(required=True)
     date_saled = mongo.DateTimeField(default=datetime.datetime.now, required=True)
-    byeer = mongo.ReferenceField(Byeer)
+    byeer_id = mongo.ReferenceField(Byeer)
+    creater = mongo.ReferenceField(Manager)
 
     meta = {
         "collection": "bills",
