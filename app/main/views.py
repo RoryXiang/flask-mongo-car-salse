@@ -99,7 +99,8 @@ def login():
         result_data = {
             "code": 200,
             "msg": "登录成功",
-            "data": token
+            "data": jsonify(person),
+            "token": token 
         }
     return result_data
 
