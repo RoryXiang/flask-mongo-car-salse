@@ -24,6 +24,8 @@ def create_app(config_name):
     mongo.init_app(app)
     login_manager.init_app(app)
     from .main import main as main_blueprint
+    from .admin import admin as admin_blueprint
     app.register_blueprint(main_blueprint)
+    app.register_blueprint(admin_blueprint)
 
     return app
