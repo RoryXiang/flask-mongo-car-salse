@@ -2,14 +2,14 @@
 # coding=utf-8
 
 from datetime import datetime
-from flask import render_template, session, url_for, current_app, abort, flash, request, make_response, request, jsonify
+from flask import session, url_for, current_app, abort, flash, request, make_response, request, jsonify
 import json
 import mongoengine
 from hashlib import md5
 from . import main
 from .. import db
 from .. import config
-from ..models import Manager, Sales, Byeer, Cars, Bills
+from ..models import Sales, Byeer, Cars, Bills
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 import functools
 from mongoengine.queryset.visitor import Q
@@ -104,35 +104,6 @@ def login():
     return result_data
 
 
-@main.route("/register", methods=["POST"])
-@login_required
-def register():
-    register_data = request.get_data()
-    register_data = json.loads(register_data)
-    pwd = md5(register_data["password"].encode()).hexdigest()
-    saler = Sales(name=register_data["name"], 
-                  phone=register_data["phone"],
-                  email="", 
-                  password=pwd, 
-                  creater=register_data["creater"])
-    try:
-        saler.save()
-        data = {
-            "code": 200,
-            "msg": "注册成功",
-            "data": {}
-        }
-    except mongoengine.errors.NotUniqueError as e:
-        print(e)
-        data = {
-            "code": 401,
-            "msg": "手机号重复",
-            "data": {}
-        }
-
-    return data
-
-
 @main.route("/insert_cars", methods=["POST"])
 @login_required
 def insert_cars():
@@ -176,7 +147,7 @@ def create_bill():
     parm_data = request.get_data()
     parm_data = jsonify(parm_data)
     bill = Bills(
-
+        
     )
     
 
