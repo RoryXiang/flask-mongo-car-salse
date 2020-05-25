@@ -94,7 +94,7 @@ def login():
             "data": {}
         }
     else:
-        session["user"] = person.phone
+        session["saler_id"] = person._id
         token = create_token(person.phone)
         result_data = {
             "code": 200,
@@ -140,22 +140,3 @@ def get_cars():
         ).limit(20).order_by("-saled_number")
     return jsonify(cars)
     # TODO 需要解决分页问题
-
-
-@main.route("/creat_bill", methods=["POST"])
-@login_required
-def create_bill():
-    parm_data = request.get_data()
-    parm_data = jsonify(parm_data)
-    bill = Bills(
-        
-    )
-    
-
-
-@main.route("/bills", methods=["POST"])
-@login_required
-def get_bills():
-    parm_data = request.get_data()
-    parm_data = jsonify(parm_data)
-

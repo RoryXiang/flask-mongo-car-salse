@@ -170,31 +170,76 @@ def create_bill():
     return result_data
 
 
-@admin.route("/bill", methods=["POST"])
+@admin.route("/password", methods=["POST"])
 @login_required
-def get_bill():
+def modified_password():
     parm_data = request.get_data()
     parm_data = jsonify(parm_data)
-    bill = Bills.objects(
-        Q(car_id=parm_data.get("car_id", None)) | Q(saler_id=parm_data.get("saler_id", None)) | Q(byeer_id=parm_data.get("byeer_id", None)) | Q(creater=parm_data.get("manager_id", None))
-    )
-    if not bill:
+    manager_id = session.get("manager_id", None)
+    new_pwd = md5(parm_data["new_password"].encode()).hexdigest()
+    old_pwd = md5(parm_data["old_password"].encode()).hexdigest()
+    manager = Manager.objects(_id=manager_id).first()
+    if manager.password != old_pwd:
         result_data = {
-            "code": 404,
-            "msg": "没有查到相应的账单",
+            "code": 403,
+            "msg": "原密码输入错误",
             "data": {}
         }
         return result_data
-    bill_info = jsonify(bill)
-    car = Cars.objects(_id=bill.car_id).first()
-    bill_info["car_name"] = car.name
-    saler = Sales.objects(_id=bill.saler_id).first()
-    bill_info["saler_name"] = saler.name
-    byeer = Byeer.objects(_id=bill.byeer_id).first()
-    bill_info["byeer_name"] = byeer.name
+    Manager.objects(_id=manager_id).update(password=new_pwd)
+    result_data = {
+        "code": 200,
+        "msg": "更改密码成功",
+        "data": {}
+    }
+    return result_data
+
+
+@admin.route("/change_master", methods=["POST"])
+@login_required
+def change_master():
+    parm_data = request.get_data()
+    parm_data = jsonify(parm_data)
+    Sales.objects(_id=parm_data["saler_id"]).update(master_belong=parm_data["master_id"])
+    result_data = {
+        "code": 200,
+        "msg": "修改成功",
+        "data": {}
+    }
+    return result_data
+
+
+@admin.route("/modified_property", methods=["POST"])
+@login_required
+def modified_property():
+    parm_data = request.get_data()
+    parm_data = jsonify(parm_data)
+    Sales.objects(_id=parm_data["saler_id"]).update(ismaster=parm_data["ismaster"])
+    result_data = {
+        "code": 200,
+        "msg": "修改成功",
+        "data": {}
+    }
+    return result_data
+
+
+@admin.route("/sales_performance", methods=["POST"])
+@login_required
+def saled_bills():
+    parm_data = request.get_data()
+    parm_data = jsonify(parm_data)
+    start = datetime.datetime(parm_data["start_year"], parm_data["start_moth"], parm_data["start_day"])
+    end= datetime.datetime(parm_data["end_year"], parm_data["end_moth"], parm_data["end_day"])
+    bills = Bills.aggregate([
+        {"$lookup":{
+            "from": "cars", "localField": "car_id", "foreignField": "_id", "as": "cars" 
+        }},
+        {"$match": {"saler_id": parm_data["saler_id"]}},
+        {"$match": {"date_saled": {"$gte": start, "$lte": end}}}
+    ]).order_by("-date-saled")
     result_data = {
         "code": 200,
         "msg": "成功",
-        "data": bill_info
+        "data": jsonify(bills)
     }
     return result_data
